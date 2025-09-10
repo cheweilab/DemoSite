@@ -8,10 +8,12 @@
   <style>
     body { font-family: 'Montserrat', sans-serif; margin:0; padding:0; background:#fff; color:#111; }
     header { background:#000; color:#fff; text-align:center; padding:1rem; font-family:'Lora', serif; font-size:1.5rem; letter-spacing:2px; }
+
     .progress { display:flex; justify-content:center; padding:1rem; gap:2rem; font-size:0.9rem; flex-wrap:wrap; }
     .progress div { position:relative; padding:0.5rem 1rem; text-align:center; }
     .progress div::after { content:''; position:absolute; right:-1rem; top:50%; width:1rem; height:2px; background:#ccc; transform:translateY(-50%); }
     .progress div:last-child::after { display:none; }
+
     .container { display:flex; flex-wrap:wrap; padding:2rem; gap:2rem; }
     .calendar-section { flex:2; min-width:300px; border:1px solid #ddd; padding:1rem; }
     .calendar-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; font-weight:600; }
@@ -29,12 +31,14 @@
     .staff-avatars .avatar-list { display:flex; justify-content:center; gap:0.75rem; flex-wrap:wrap; }
     .staff-avatars img { width:70px; height:70px; border-radius:50%; border:2px solid #ddd; object-fit:cover; cursor:pointer; transition:transform 0.2s ease, border-color 0.2s ease; }
     .staff-avatars img:hover { transform:scale(1.05); border-color:#000; }
+
     .booking-section { flex:1; min-width:250px; border:1px solid #ddd; padding:1rem; }
     .booking-section h3 { font-size:1rem; margin-bottom:1rem; border-bottom:1px solid #ccc; padding-bottom:0.5rem; }
     .form-group { margin-bottom:1rem; }
     select,input { width:100%; padding:0.5rem; border:1px solid #ccc; font-family:inherit; }
     #form-submit { display:block; width:100%; padding:0.75rem; background:#000; color:#fff; border:none; font-size:1rem; cursor:pointer; margin-top:1rem; transition:background 0.3s ease; }
     #form-submit:hover { background:#444; }
+
     @media(max-width:750px) {
       .container { flex-direction:column; padding:1rem; }
       .calendar-section, .booking-section { width:100%; min-width:unset; padding:1rem 0.5rem; }
@@ -142,83 +146,63 @@
     firebase.initializeApp(firebaseConfig);
     const databaseRef = firebase.database().ref('reservations');
 
-    // Staff and Schedule
+    // Staff data
     const therapists = [
-      { id: 1, name: "Therapist 1", img: "https://i.pravatar.cc/45?img=11" },
-      { id: 2, name: "Therapist 2", img: "https://i.pravatar.cc/45?img=10" },
-      { id: 3, name: "Therapist 3", img: "https://i.pravatar.cc/45?img=9" },
-      { id: 4, name: "Therapist 4", img: "https://i.pravatar.cc/45?img=8" },
-      { id: 5, name: "Therapist 5", img: "https://i.pravatar.cc/45?img=7" },
-      { id: 6, name: "Therapist 6", img: "https://i.pravatar.cc/45?img=6" },
-      { id: 7, name: "Therapist 7", img: "https://i.pravatar.cc/45?img=5" },
-      { id: 8, name: "Therapist 8", img: "https://i.pravatar.cc/45?img=4" },
-      { id: 9, name: "Therapist 9", img: "https://i.pravatar.cc/45?img=3" },
-      { id: 10, name: "Therapist 10", img: "https://i.pravatar.cc/45?img=2" },
-      { id: 11, name: "Therapist 11", img: "https://i.pravatar.cc/45?img=1" }
+      { id:1,name:"Therapist 1",img:"https://i.pravatar.cc/45?img=11" },
+      { id:2,name:"Therapist 2",img:"https://i.pravatar.cc/45?img=10" },
+      { id:3,name:"Therapist 3",img:"https://i.pravatar.cc/45?img=9" },
+      { id:4,name:"Therapist 4",img:"https://i.pravatar.cc/45?img=8" },
+      { id:5,name:"Therapist 5",img:"https://i.pravatar.cc/45?img=7" }
     ];
 
-    const dutySchedule = { 10:[1,3], 15:[2,5,6], 20:[4,7,8,9] };
+    const dutySchedule = { 10:[1,3], 15:[2,5], 20:[4,5] };
     const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-
-    let currentDate = new Date();
-    let currentMonth = currentDate.getMonth();
-    let currentYear = currentDate.getFullYear();
+    let currentDate = new Date(), currentMonth = currentDate.getMonth(), currentYear = currentDate.getFullYear();
 
     function renderCalendar(year, month) {
       const calendarTitle = document.getElementById("calendar-title");
       const calendarGrid = document.getElementById("calendar-grid");
       const staffAvatars = document.getElementById("staff-avatars");
-
       calendarGrid.innerHTML = "";
       staffAvatars.innerHTML = "";
       calendarTitle.textContent = `${monthNames[month]} ${year}`;
 
-      const daysOfWeek = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
-      daysOfWeek.forEach(d => {
-        const div = document.createElement("div");
-        div.textContent = d;
-        div.classList.add("day-name");
-        calendarGrid.appendChild(div);
+      ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].forEach(d=>{
+        const div=document.createElement("div");
+        div.textContent=d; div.classList.add("day-name"); calendarGrid.appendChild(div);
       });
 
       const firstDay = new Date(year, month, 1).getDay();
-      const totalDays = new Date(year, month + 1, 0).getDate();
+      const totalDays = new Date(year, month+1,0).getDate();
 
-      for (let i = 0; i < firstDay; i++) {
-        const blank = document.createElement("div");
-        blank.classList.add("empty");
-        calendarGrid.appendChild(blank);
-      }
+      for(let i=0;i<firstDay;i++){ const blank=document.createElement("div"); blank.classList.add("empty"); calendarGrid.appendChild(blank); }
 
-      for (let day = 1; day <= totalDays; day++) {
-        const dateDiv = document.createElement("div");
-        dateDiv.textContent = day;
-        dateDiv.classList.add("date");
+      for(let day=1; day<=totalDays; day++){
+        const dateDiv=document.createElement("div");
+        dateDiv.textContent=day; dateDiv.classList.add("date");
 
-        if (day === currentDate.getDate() && month === currentDate.getMonth() && year === currentDate.getFullYear()) {
-          dateDiv.classList.add("selected");
-        }
+        // Mark unavailable
+        if(!dutySchedule[day]) dateDiv.style.background="#999", dateDiv.style.color="#fff";
 
-        if (!dutySchedule[day]) { dateDiv.style.background="#999"; dateDiv.style.color="#fff"; }
-
-        dateDiv.addEventListener("click", () => {
-          document.querySelectorAll(".date.selected").forEach(el => el.classList.remove("selected"));
+        if(day===currentDate.getDate() && month===currentDate.getMonth() && year===currentDate.getFullYear())
           dateDiv.classList.add("selected");
 
-          document.getElementById('appointmentDate').value = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+        dateDiv.addEventListener("click",()=>{
+          document.querySelectorAll(".date.selected").forEach(el=>el.classList.remove("selected"));
+          dateDiv.classList.add("selected");
+          const appointmentInput=document.getElementById("appointmentDate");
+          appointmentInput.value=`${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
 
-          const availableIds = dutySchedule[day] || therapists.map(t=>t.id);
-          const availableTherapists = therapists.filter(t => availableIds.includes(t.id));
-
-          staffAvatars.innerHTML = `
+          const availableIds=dutySchedule[day]||therapists.map(t=>t.id);
+          const availableTherapists=therapists.filter(t=>availableIds.includes(t.id));
+          staffAvatars.innerHTML=`
             <h4>Available Staff for ${monthNames[month]} ${day}</h4>
-            <div class="avatar-list">
-              ${availableTherapists.map(t=>`<img src="${t.img}" alt="${t.name}" title="${t.name}">`).join('')}
-            </div>
+            <div class="avatar-list">${availableTherapists.map(t=>`<img src="${t.img}" alt="${t.name}" title="${t.name}">`).join('')}</div>
           `;
 
-          document.querySelectorAll('.staff-avatars img').forEach(img=>{
-            img.addEventListener('click', ()=>{ document.getElementById('therapistSelect').value = img.alt; });
+          // Click avatar to select
+          staffAvatars.querySelectorAll("img").forEach(img=>{
+            img.addEventListener("click",()=> document.getElementById("therapistSelect").value=img.alt);
           });
         });
 
@@ -226,42 +210,38 @@
       }
     }
 
-    document.getElementById("prev-month").addEventListener("click", () => {
-      currentMonth--; if(currentMonth<0){currentMonth=11;currentYear--;}
+    document.getElementById("prev-month").addEventListener("click",()=>{
+      currentMonth--; if(currentMonth<0){ currentMonth=11; currentYear--; }
       renderCalendar(currentYear,currentMonth);
     });
-
-    document.getElementById("next-month").addEventListener("click", () => {
-      currentMonth++; if(currentMonth>11){currentMonth=0;currentYear++;}
+    document.getElementById("next-month").addEventListener("click",()=>{
+      currentMonth++; if(currentMonth>11){ currentMonth=0; currentYear++; }
       renderCalendar(currentYear,currentMonth);
     });
 
     renderCalendar(currentYear,currentMonth);
 
     // Form submission
-    document.getElementById('form-submit').onclick = function() {
-      const fullName = document.getElementById('fullName').value.trim();
-      const email = document.getElementById('email').value.trim();
-      const phone = document.getElementById('phone').value.trim();
-      const date = document.getElementById('appointmentDate').value;
-      const time = document.getElementById('appointmentTime').value;
-      const room = document.getElementById('roomSelect').value;
-      const therapist = document.getElementById('therapistSelect').value;
-      const notes = document.getElementById('notes').value.trim();
+    document.getElementById('form-submit').onclick=function(){
+      const fullName=document.getElementById('fullName').value.trim();
+      const email=document.getElementById('email').value.trim();
+      const phone=document.getElementById('phone').value.trim();
+      const date=document.getElementById('appointmentDate').value;
+      const time=document.getElementById('appointmentTime').value;
+      const room=document.getElementById('roomSelect').value;
+      const therapist=document.getElementById('therapistSelect').value;
+      const notes=document.getElementById('notes').value.trim();
 
-      if(!fullName||!email||!phone||!date||!time){ alert('Please fill in all required fields!'); return; }
+      if(!fullName||!email||!phone||!date||!time){
+        alert('Please fill in all required fields!');
+        return;
+      }
 
-      databaseRef.push({ fullName,email,phone,date,time,room,therapist,notes })
-      .then(()=>{
-        alert('Booking submitted successfully!');
-        document.getElementById('fullName').value='';
-        document.getElementById('email').value='';
-        document.getElementById('phone').value='';
-        document.getElementById('appointmentDate').value='';
-        document.getElementById('appointmentTime').value='';
+      databaseRef.push({fullName,email,phone,date,time,room,therapist,notes})
+      .then(()=>{ alert('Booking submitted successfully!');
+        ['fullName','email','phone','appointmentDate','appointmentTime','notes'].forEach(id=>document.getElementById(id).value='');
         document.getElementById('roomSelect').value='Select a room';
         document.getElementById('therapistSelect').value='No preference';
-        document.getElementById('notes').value='';
       })
       .catch(err=>{ console.error(err); alert('Failed to submit booking.'); });
     };
