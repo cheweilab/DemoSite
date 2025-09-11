@@ -49,6 +49,21 @@
       header { font-size:1.3rem; padding:0.8rem; }
       .legend { font-size:0.7rem; }
     }
+    
+.progress a {
+  color: inherit;            /* use the parent text color (#111 by default) */
+  text-decoration: none;     /* remove underline */
+  padding: 0.5rem 1rem;
+  display: block;            /* fills the div for easier clicking */
+  transition: color 0.3s ease, background 0.3s ease;
+}
+
+.progress a:hover {
+  color: #000;               /* slightly bolder/darker on hover */
+  background: #f0f0f0;       /* subtle background change */
+  border-radius: 4px;
+}
+
   </style>
 </head>
 <body>
@@ -56,7 +71,7 @@
 
   <div class="progress">
     <div>Home</div>
-   <a href="menu.html">View Menu</a>
+   <div><a href="menu.html">View Menu</a></div>
     <div>Blank</div>
     <div>Blank</div>
   </div>
